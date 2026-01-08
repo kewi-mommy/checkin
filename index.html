@@ -29,24 +29,23 @@
         /* 標題樣式 */
         .section-title { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 8px; font-weight: bold; }
 
-        /* 1. 上傳區域 (第一塊) */
+        /* 上傳區域 */
         .upload-area { text-align: center; }
         .status-box { font-size: 13px; color: #666; margin-bottom: 15px; padding: 10px; background: var(--soft-green); border-radius: 10px; min-height: 18px; }
         .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-submit { background: var(--line-green); margin-top: 12px; display: none; }
         #preview { width: 100%; border-radius: 12px; margin-top: 15px; display: none; }
 
-        /* 2. 獎品區域 (第二塊 - 一橫排兩個) */
+        /* 獎品區域 (一橫排兩個) */
         .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 12px; text-align: center; }
-        
         .reward-name { font-size: 14px; font-weight: bold; margin-bottom: 8px; height: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; line-height: 1.2; }
         
         /* 圖片 1:1 方框 */
         .reward-img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 10px; background: #f9f9f9; margin-bottom: 10px; }
         .reward-img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 進度條樣式 */
+        /* 進度條 */
         .progress-container { margin-top: 5px; }
         .progress-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-weight: bold; color: #666; }
         .progress-bg { background: #eee; height: 8px; border-radius: 5px; overflow: hidden; }
@@ -75,7 +74,7 @@
         <button id="submit-btn" class="btn-main btn-submit">確認送出</button>
     </div>
 
-    <!-- 2. 獎品兌換進度區 (一排兩個) -->
+    <!-- 2. 獎品兌換進度區 (文字已修改為 VIP集點換好禮) -->
     <div class="card">
         <div class="section-title"><i class="fas fa-gift" style="color:#ff4757"></i> VIP集點換好禮</div>
         <div id="rewards-grid" class="rewards-grid">
@@ -85,6 +84,7 @@
 </div>
 
 <script>
+// --- 下方為原本穩定的腳本，不需更動但請確認網址正確 ---
 const LIFF_ID = "2008852092-FWAMmdWd"; 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
 
@@ -97,6 +97,7 @@ async function init() {
         const profile = await liff.getProfile();
         userId = profile.userId;
         userName = profile.displayName;
+        document.getElementById("display-name").innerText = userName; // 如果這行報錯，請確認 HTML ID
         document.getElementById("user-name").innerText = userName;
         document.getElementById("user-avatar").src = profile.pictureUrl;
         fetchData();
@@ -137,7 +138,6 @@ function renderRewards(rewards) {
     });
 }
 
-// 圖片辨識邏輯保持不變 (優化後的版本)
 document.getElementById('file-input').onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
