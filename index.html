@@ -3,51 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品集點系統</title>
+    <title>會員集點系統</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        #preview { width: 100%; margin-top: 10px; display: none; border: 1px solid #ccc; }
-        button { background: #00b900; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        #preview { width: 100%; border-radius: 10px; margin-top: 15px; display: none; border: 1px solid #ddd; }
+        button { background: #00b900; color: white; border: none; padding: 15px 20px; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; width: 100%; font-weight: bold; }
         button:disabled { background: #ccc; }
-        #status { margin-top: 15px; color: #d9534f; font-weight: bold; min-height: 1.5em; }
+        #status { margin-top: 15px; color: #333; font-size: 14px; line-height: 1.6; }
+        .debug-text { color: #888; font-size: 12px; background: #eee; padding: 5px; margin-top: 10px; border-radius: 5px; word-break: break-all; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 id="user-name">正在載入 LINE 資料...</h2>
-    <div id="status"></div>
+    <h2 id="user-name">正在載入...</h2>
+    <div id="status">請選取 LINE 對話截圖</div>
     
     <input type="file" id="file-input" accept="image/*" style="display:none">
-    <button onclick="document.getElementById('file-input').click()">選取對話截圖</button>
-    <br>
-    <canvas id="debug-canvas" style="display:none; width: 100%; border: 1px solid red;"></canvas>
+    <button onclick="document.getElementById('file-input').click()">📸 選取截圖</button>
+    
     <img id="preview">
-    <button id="submit-btn" style="display:none">確認送出打卡</button>
+    <button id="submit-btn" style="display:none">🚀 確認送出打卡</button>
+    <div id="debug-info" class="debug-text" style="display:none"></div>
 </div>
 
 <script>
+// --- 請務必填寫你的資訊 ---
 const LIFF_ID = "2008852092-FWAMmdWd"; 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
+// -----------------------
 
 let userId = "", userName = "";
 
 async function init() {
-    try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) {
-            liff.login();
-        } else {
-            const profile = await liff.getProfile();
-            userId = profile.userId;
-            userName = profile.displayName;
-            document.getElementById("user-name").innerText = `你好，${userName}`;
-        }
-    } catch (err) {
-        document.getElementById("status").innerText = "LIFF 初始化失敗，請檢查 ID";
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+        liff.login();
+    } else {
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        userName = profile.displayName;
+        document.getElementById("user-name").innerText = `你好，${userName}`;
     }
 }
 
@@ -56,65 +55,66 @@ document.getElementById('file-input').onchange = function(e) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(event) {
-        document.getElementById('preview').src = event.target.result;
-        document.getElementById('preview').style.display = 'block';
+        const img = document.getElementById('preview');
+        img.src = event.target.result;
+        img.style.display = 'block';
         document.getElementById('submit-btn').style.display = 'block';
-        document.getElementById('status').innerText = "圖片已就緒";
+        document.getElementById('status').innerText = "圖片已就緒，請點擊送出";
     };
     reader.readAsDataURL(file);
 };
 
 document.getElementById('submit-btn').onclick = async function() {
     const status = document.getElementById('status');
+    const debugInfo = document.getElementById('debug-info');
     const btn = this;
+    
     btn.disabled = true;
-    status.innerText = "OCR 辨識中，請稍候...";
+    status.innerHTML = "🔍 正在分析圖片...<br>(字體較小時可能需 10-15 秒)";
 
     const img = new Image();
     img.src = document.getElementById('preview').src;
     await img.decode();
 
-const canvas = document.createElement('canvas');
+    // --- 圖片處理增強：放大 3 倍 + 裁切右半部 ---
+    const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    
-    // 設定放大倍率 (例如 2 倍)
-    const scale = 2;
+    const scale = 3; // 放大 3 倍提高辨識率
     const cropWidth = img.width * 0.5;
     
-    // 讓 Canvas 變成兩倍大
     canvas.width = cropWidth * scale;
     canvas.height = img.height * scale;
     
-    // 畫圖時同步放大
+    // 平滑化設定 (讓放大後的字不模糊)
+    ctx.imageSmoothingEnabled = false;
+    
     ctx.drawImage(img, 
         img.width * 0.5, 0, cropWidth, img.height, // 來源：原圖右半部
-        0, 0, canvas.width, canvas.height         // 目標：放大後的畫布
+        0, 0, canvas.width, canvas.height         // 目標：放大後畫布
     );
-    
-    // 接下來再做黑白處理...
-    // 裁切右半部
-    ctx.drawImage(img, img.width * 0.5, 0, cropWidth, img.height, 0, 0, cropWidth, img.height);
-    
-    // 轉為黑白 (濾掉藍色背景干擾)
+
+    // 轉黑白對比強化
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let pixels = imgData.data;
     for (let i = 0; i < pixels.length; i += 4) {
         let avg = (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
-        let grayscale = avg < 160 ? 0 : 255; // 門檻值：暗的變全黑，亮的變全白
+        let grayscale = avg < 170 ? 0 : 255; // 提高對比門檻
         pixels[i] = pixels[i+1] = pixels[i+2] = grayscale;
     }
     ctx.putImageData(imgData, 0, 0);
 
     try {
-        // 使用繁體中文偵測
+        // 使用繁體中文辨識
         const { data: { text } } = await Tesseract.recognize(canvas.toDataURL(), 'chi_tra');
-        const cleanText = text.replace(/\s+/g, ""); 
-        console.log("辨識內容:", cleanText);
+        const cleanText = text.replace(/\s+/g, ""); // 去除所有空格
+        
+        debugInfo.innerText = "機器看到的文字：" + cleanText;
+        debugInfo.style.display = "block";
 
-        status.innerText = "正在核對資料...";
+        status.innerText = "🚀 正在同步至試算表...";
+
         const response = await fetch(GAS_URL, {
             method: "POST",
-            mode: "no-cors", // 嘗試避開跨網域問題
             body: JSON.stringify({
                 userId: userId,
                 userName: userName,
@@ -123,12 +123,17 @@ const canvas = document.createElement('canvas');
             })
         });
 
-        // 因為 no-cors 無法讀取回傳內容，我們假設送出成功並直接提示
-        alert("資料已送出！請稍後檢查試算表。若沒增加點數，代表關鍵字不符。");
-        status.innerText = "已送出，辨識內容為：" + cleanText;
+        const result = await response.text();
+        alert(result);
+        status.innerText = result;
+        
+        if(result.includes("成功")) {
+            document.getElementById('preview').style.display = 'none';
+            btn.style.display = 'none';
+        }
     } catch (err) {
-        console.error(err);
-        alert("系統出錯：" + err.message);
+        alert("辨識過程發生錯誤，請重新嘗試");
+        status.innerText = "錯誤: " + err;
     } finally {
         btn.disabled = false;
     }
