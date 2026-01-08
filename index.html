@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- 1. 連結預覽設定 -->
     <title>葵粉動起來</title>
     <meta property="og:title" content="葵粉動起來">
-    <meta property="og:description" content="上傳打卡截圖，輕鬆累積點數換好禮！">
+    <meta property="og:description" content="VIP集點換好禮">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://i.postimg.cc/jSMWWBvz/001-fang-an-tu-de-fu-ben-vivipic.jpg">
 
+    <!-- 2. 外部資源 -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -20,100 +22,108 @@
         
         /* 頂部 Header */
         .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 40px 20px; text-align: center; color: white; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin-bottom: 10px; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin-bottom: 10px; object-fit: cover; }
         .points-val { font-size: 52px; font-weight: 800; margin: 5px 0; }
         
         .container { max-width: 450px; margin: -30px auto 40px; padding: 0 15px; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* 標題樣式 */
         .section-title { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 8px; font-weight: bold; }
 
         /* 上傳區域 */
         .upload-area { text-align: center; }
         .status-box { font-size: 13px; color: #666; margin-bottom: 15px; padding: 10px; background: var(--soft-green); border-radius: 10px; min-height: 18px; }
-        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-submit { background: var(--line-green); margin-top: 12px; display: none; }
+        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-submit { background: var(--line-green); margin-top: 12px; display: none; box-shadow: 0 5px 15px rgba(6,199,85,0.2); }
         #preview { width: 100%; border-radius: 12px; margin-top: 15px; display: none; }
 
         /* 獎品區域 (一橫排兩個) */
         .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 12px; text-align: center; }
-        .reward-name { font-size: 14px; font-weight: bold; margin-bottom: 8px; height: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; line-height: 1.2; }
+        .reward-name { font-size: 13px; font-weight: bold; margin-bottom: 8px; height: 38px; display: flex; align-items: center; justify-content: center; overflow: hidden; line-height: 1.2; color: #444; }
         
-        /* 圖片 1:1 方框 */
         .reward-img-container { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 10px; background: #f9f9f9; margin-bottom: 10px; }
         .reward-img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 進度條 */
         .progress-container { margin-top: 5px; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-weight: bold; color: #666; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; font-weight: bold; color: #777; }
         .progress-bg { background: #eee; height: 8px; border-radius: 5px; overflow: hidden; }
         .progress-fill { background: var(--line-green); height: 100%; transition: width 0.8s ease-out; }
+        
+        .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s infinite; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="header">
     <img id="user-avatar" class="avatar" src="">
-    <div id="user-name" style="opacity: 0.9;">載入中...</div>
+    <div id="user-name" style="opacity: 0.9;">讀取中...</div>
     <div class="points-val" id="points-display">--</div>
     <div style="font-size: 12px; opacity: 0.7; letter-spacing: 2px;">TOTAL POINTS</div>
 </div>
 
 <div class="container">
-    <!-- 1. 上傳打卡區 -->
+    <!-- 1. 上傳打卡區 (在最上方) -->
     <div class="card upload-area">
         <div class="section-title"><i class="fas fa-camera" style="color:var(--line-green)"></i> 截圖集點</div>
-        <div id="status" class="status-box">請上傳對話截圖</div>
+        <div id="status" class="status-box">請上傳您的對話截圖</div>
         <input type="file" id="file-input" accept="image/*" style="display:none">
         <button class="btn-main" onclick="document.getElementById('file-input').click()">
-            <i class="fas fa-plus-circle"></i> 選取照片
+            <i class="fas fa-plus-circle"></i> 選取截圖照片
         </button>
         <img id="preview">
         <button id="submit-btn" class="btn-main btn-submit">確認送出</button>
     </div>
 
-    <!-- 2. 獎品兌換進度區 (文字已修改為 VIP集點換好禮) -->
+    <!-- 2. 獎品兌換區 (在下方) -->
     <div class="card">
         <div class="section-title"><i class="fas fa-gift" style="color:#ff4757"></i> VIP集點換好禮</div>
         <div id="rewards-grid" class="rewards-grid">
-            <p style="color:#888; font-size:12px; grid-column: span 2;">獎品讀取中...</p>
+            <p style="color:#888; font-size:12px; grid-column: span 2;">獎品加載中...</p>
         </div>
     </div>
 </div>
 
 <script>
-// --- 下方為原本穩定的腳本，不需更動但請確認網址正確 ---
+// --- 請務必核對你的 ID 與網址 ---
 const LIFF_ID = "2008852092-FWAMmdWd"; 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
 
 let userId = "", userName = "", currentPoints = 0;
 
 async function init() {
-    await liff.init({ liffId: LIFF_ID });
-    if (!liff.isLoggedIn()) { liff.login(); } 
-    else {
-        const profile = await liff.getProfile();
-        userId = profile.userId;
-        userName = profile.displayName;
-        document.getElementById("display-name").innerText = userName; // 如果這行報錯，請確認 HTML ID
-        document.getElementById("user-name").innerText = userName;
-        document.getElementById("user-avatar").src = profile.pictureUrl;
-        fetchData();
-    }
+    try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); } 
+        else {
+            const profile = await liff.getProfile();
+            userId = profile.userId;
+            userName = profile.displayName;
+            document.getElementById("user-name").innerText = userName;
+            document.getElementById("user-avatar").src = profile.pictureUrl || "https://via.placeholder.com/80";
+            fetchData();
+        }
+    } catch (e) { document.getElementById("status").innerText = "LIFF 初始化失敗"; }
 }
 
 async function fetchData() {
-    const res = await fetch(`${GAS_URL}?userId=${userId}`);
-    const data = await res.json();
-    currentPoints = data.points;
-    document.getElementById("points-display").innerText = currentPoints;
-    renderRewards(data.rewards);
+    try {
+        const res = await fetch(`${GAS_URL}?userId=${userId}`);
+        const data = await res.json();
+        currentPoints = data.points;
+        document.getElementById("points-display").innerText = currentPoints;
+        renderRewards(data.rewards);
+    } catch (e) { console.error("資料抓取失敗"); }
 }
 
 function renderRewards(rewards) {
     const grid = document.getElementById("rewards-grid");
+    if (!rewards || rewards.length === 0) {
+        grid.innerHTML = '<p style="font-size:12px; color:#888;">目前暫無獎品</p>';
+        return;
+    }
     grid.innerHTML = "";
     rewards.forEach(r => {
         let percent = Math.min((currentPoints / r.required) * 100, 100);
@@ -146,7 +156,7 @@ document.getElementById('file-input').onchange = function(e) {
         document.getElementById('preview').src = ev.target.result;
         document.getElementById('preview').style.display = 'block';
         document.getElementById('submit-btn').style.display = 'flex';
-        document.getElementById('status').innerText = "圖片已就緒";
+        document.getElementById('status').innerText = "圖片已就緒，請核對送出";
     };
     reader.readAsDataURL(file);
 };
@@ -155,7 +165,7 @@ document.getElementById('submit-btn').onclick = async function() {
     const btn = this;
     const status = document.getElementById('status');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
+    btn.innerHTML = '<div class="loading-spinner"></div> 辨識中...';
 
     const img = new Image();
     img.src = document.getElementById('preview').src;
@@ -186,13 +196,18 @@ document.getElementById('submit-btn').onclick = async function() {
         });
         const result = await response.text();
         alert(result);
+        
+        // 重置狀態
         document.getElementById('preview').style.display = 'none';
         btn.style.display = 'none';
         btn.disabled = false;
         btn.innerHTML = '確認送出';
+        document.getElementById('file-input').value = "";
+        document.getElementById('status').innerText = "完成打卡！請選擇下一張";
+        
         fetchData(); 
     } catch (err) {
-        alert("連線失敗");
+        alert("連線失敗，請稍後重試");
         btn.disabled = false;
         btn.innerHTML = '確認送出';
     }
