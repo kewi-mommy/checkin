@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品集點系統</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        #preview { width: 100%; max-width: 300px; margin-top: 10px; display: none; }
+        button { background: #00b900; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 15px; color: #555; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 id="user-name">載入中...</h2>
+    <p>上傳您的 LINE 截圖即可集點</p>
+    
+    <input type="file" id="file-input" accept="image/*" style="display:none">
+    <button onclick="document.getElementById('file-input').click()">選取截圖</button>
+    <br>
+    <img id="preview">
+    <div id="status"></div>
+    <button id="submit-btn" style="display:none">確認送出打卡</button>
+</div>
+
+<script>
+// --- 請修改下方設定 ---
+const LIFF_ID = "2008852092-FWAMmdWd"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
+// --------------------
+
+let userId = "", userName = "";
+
+async function init() {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) {
+        liff.login();
+    } else {
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        userName = profile.displayName;
+        document.getElementById("user-name").innerText = `你好，${userName}`;
+    }
+}
+
+document.getElementById('file-input').onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const imgDisplay = document.getElementById('preview');
+        imgDisplay.src = event.target.result;
+        imgDisplay.style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'inline-block';
+        document.getElementById('status').innerText = "圖片已就緒，請點擊送出";
+    };
+    reader.readAsDataURL(file);
+};
+
+document.getElementById('submit-btn').onclick = async function() {
+    const fileInput = document.getElementById('file-input');
+    const status = document.getElementById('status');
+    const btn = this;
+
+    btn.disabled = true;
+    status.innerText = "偵測文字中 (約需 5-10 秒)...";
+
+    const img = new Image();
+    img.src = document.getElementById('preview').src;
+    await img.decode();
+
+    // 1. 裁剪圖片右側 (解決 Bug 1)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const cropWidth = img.width * 0.5; // 只取右半部
+    canvas.width = cropWidth;
+    canvas.height = img.height;
+    ctx.drawImage(img, img.width * 0.5, 0, cropWidth, img.height, 0, 0, cropWidth, img.height);
+
+    // 2. OCR 辨識
+    try {
+        const { data: { text } } = await Tesseract.recognize(canvas.toDataURL(), 'chi_tra');
+        console.log("偵測結果:", text);
+
+        // 3. 傳送到 GAS
+        status.innerText = "正在核對資料...";
+        const response = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                userId: userId,
+                userName: userName,
+                rawText: text,
+                date: new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+            })
+        });
+
+        const result = await response.text();
+        alert(result);
+        status.innerText = result;
+    } catch (err) {
+        alert("辨識失敗，請重新嘗試");
+        status.innerText = "";
+    } finally {
+        btn.disabled = false;
+    }
+};
+
+init();
+</script>
+</body>
+</html>
