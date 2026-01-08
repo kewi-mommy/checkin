@@ -74,13 +74,24 @@ document.getElementById('submit-btn').onclick = async function() {
     img.src = document.getElementById('preview').src;
     await img.decode();
 
-    // --- 圖片處理優化 (黑白增強對比) ---
-    const canvas = document.createElement('canvas');
+const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const cropWidth = img.width * 0.5;
-    canvas.width = cropWidth;
-    canvas.height = img.height;
     
+    // 設定放大倍率 (例如 2 倍)
+    const scale = 2;
+    const cropWidth = img.width * 0.5;
+    
+    // 讓 Canvas 變成兩倍大
+    canvas.width = cropWidth * scale;
+    canvas.height = img.height * scale;
+    
+    // 畫圖時同步放大
+    ctx.drawImage(img, 
+        img.width * 0.5, 0, cropWidth, img.height, // 來源：原圖右半部
+        0, 0, canvas.width, canvas.height         // 目標：放大後的畫布
+    );
+    
+    // 接下來再做黑白處理...
     // 裁切右半部
     ctx.drawImage(img, img.width * 0.5, 0, cropWidth, img.height, 0, 0, cropWidth, img.height);
     
