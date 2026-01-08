@@ -3,47 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>葵粉動起來</title>
+    <title>葵粉動起來</title> <!-- 這裡修改連結名稱 -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --line-green: #06C755; --bg-gray: #F0F2F5; }
-        body { font-family: 'PingFang TC', sans-serif; background-color: var(--bg-gray); margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 450px; background: white; min-height: 100vh; padding-bottom: 50px; }
-        .profile-section { background: var(--line-green); padding: 40px 20px; text-align: center; color: white; border-radius: 0 0 30px 30px; }
-        .avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); margin-bottom: 10px; object-fit: cover; }
-        .user-name { font-size: 18px; font-weight: bold; }
-        .points-card { background: white; width: 85%; margin: -30px auto 20px; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
-        .points-value { font-size: 50px; font-weight: 800; color: #333; margin: 5px 0; }
-        .action-section { padding: 0 25px; }
-        .status-box { background: #F8F9FA; padding: 12px; border-radius: 10px; font-size: 13px; color: #666; margin-bottom: 15px; border: 1px dashed #DDD; min-height: 18px; }
-        .upload-btn { background: #333; color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .submit-btn { background: var(--line-green); color: white; padding: 15px; border-radius: 12px; border: none; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        :root { --line-green: #06C755; --soft-green: #e8f5e9; --accent-gold: #FFD700; }
+        body { font-family: 'PingFang TC', sans-serif; background-color: #f0f2f5; margin: 0; color: #333; }
+        
+        /* 頂部區域 */
+        .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 40px 20px; text-align: center; color: white; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .avatar { width: 85px; height: 85px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); margin-bottom: 12px; }
+        .points-val { font-size: 56px; font-weight: 800; margin: 5px 0; }
+        
+        /* 主容器 */
+        .container { max-width: 450px; margin: -30px auto 40px; padding: 0 20px; }
+        .card { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* 獎品進度條樣式 */
+        .reward-item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+        .reward-item:last-child { border-bottom: none; }
+        .reward-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; }
+        .progress-bg { background: #eee; height: 12px; border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-fill { background: linear-gradient(90deg, #4caf50, var(--line-green)); height: 100%; border-radius: 10px; transition: width 1s ease-out; }
+        .points-needed { font-size: 12px; color: #888; margin-top: 5px; text-align: right; }
+
+        /* 上傳區域 */
+        .upload-area { text-align: center; }
+        .status-box { font-size: 13px; color: #666; margin: 15px 0; padding: 10px; background: var(--soft-green); border-radius: 10px; }
+        .btn-main { background: #333; color: white; border: none; padding: 18px; width: 100%; border-radius: 15px; font-size: 17px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-submit { background: var(--line-green); margin-top: 15px; display: none; box-shadow: 0 5px 15px rgba(6,199,85,0.3); }
         #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; }
-        .loading-spinner { display: inline-block; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s infinite; vertical-align: middle; margin-right: 5px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="profile-section">
-        <img id="user-avatar" class="avatar" src="">
-        <div id="display-name" class="user-name">載入中...</div>
+<div class="header">
+    <img id="user-avatar" class="avatar" src="">
+    <div id="user-name" style="font-size: 18px; opacity: 0.9;">載入中...</div>
+    <div class="points-val" id="points-display">--</div>
+    <div style="font-size: 14px; opacity: 0.8; letter-spacing: 2px;">TOTAL POINTS</div>
+</div>
+
+<div class="container">
+    <!-- 獎品進度條區 -->
+    <div class="card">
+        <h3 style="margin-top:0; font-size:18px; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-gift" style="color: #ff4757;"></i> 獎品兌換進度
+        </h3>
+        <div id="rewards-list">
+            <p style="color:#888; font-size:14px;">讀取獎品中...</p>
+        </div>
     </div>
 
-    <div class="points-card">
-        <div style="color:#888; font-size:12px;">目前累積點數</div>
-        <div class="points-value" id="points-display">--</div>
-    </div>
-
-    <div class="action-section">
-        <div id="status" class="status-box">請選取打卡截圖</div>
+    <!-- 上傳打卡區 -->
+    <div class="card upload-area">
+        <div id="status" class="status-box">上傳今日截圖，領取新點數！</div>
         <input type="file" id="file-input" accept="image/*" style="display:none">
-        <button id="upload-trigger" class="upload-btn" onclick="document.getElementById('file-input').click()">📸 選取對話截圖</button>
+        <button class="btn-main" onclick="document.getElementById('file-input').click()">
+            <i class="fas fa-camera"></i> 選取對話截圖
+        </button>
         <img id="preview">
-        <button id="submit-btn" class="submit-btn" style="display:none">確認送出打卡</button>
+        <button id="submit-btn" class="btn-main btn-submit">🚀 確認送出打卡</button>
     </div>
 </div>
 
@@ -51,7 +72,7 @@
 const LIFF_ID = "2008852092-FWAMmdWd"; 
 const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
 
-let userId = "", userName = "";
+let userId = "", userName = "", currentPoints = 0;
 
 async function init() {
     await liff.init({ liffId: LIFF_ID });
@@ -60,18 +81,43 @@ async function init() {
         const profile = await liff.getProfile();
         userId = profile.userId;
         userName = profile.displayName;
-        document.getElementById("display-name").innerText = userName;
+        document.getElementById("user-name").innerText = userName;
         document.getElementById("user-avatar").src = profile.pictureUrl;
-        fetchUserData();
+        fetchData();
     }
 }
 
-async function fetchUserData() {
+async function fetchData() {
     const res = await fetch(`${GAS_URL}?userId=${userId}`);
     const data = await res.json();
-    document.getElementById("points-display").innerText = data.points;
+    currentPoints = data.points;
+    document.getElementById("points-display").innerText = currentPoints;
+    renderRewards(data.rewards);
 }
 
+function renderRewards(rewards) {
+    const list = document.getElementById("rewards-list");
+    list.innerHTML = "";
+    rewards.forEach(r => {
+        let percent = Math.min((currentPoints / r.required) * 100, 100);
+        list.innerHTML += `
+            <div class="reward-item">
+                <div class="reward-info">
+                    <span>${r.name}</span>
+                    <span style="color:var(--line-green)">${currentPoints} / ${r.required}</span>
+                </div>
+                <div class="progress-bg">
+                    <div class="progress-fill" style="width: ${percent}%"></div>
+                </div>
+                <div class="points-needed">
+                    ${percent >= 100 ? '✅ 已達成目標' : `還差 ${r.required - currentPoints} 點`}
+                </div>
+            </div>
+        `;
+    });
+}
+
+// 圖片處理邏輯 (保持之前穩定版的內容)
 document.getElementById('file-input').onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -79,7 +125,7 @@ document.getElementById('file-input').onchange = function(e) {
     reader.onload = function(ev) {
         document.getElementById('preview').src = ev.target.result;
         document.getElementById('preview').style.display = 'block';
-        document.getElementById('submit-btn').style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'flex';
         document.getElementById('status').innerText = "圖片已就緒，請核對後送出";
     };
     reader.readAsDataURL(file);
@@ -89,7 +135,7 @@ document.getElementById('submit-btn').onclick = async function() {
     const btn = this;
     const status = document.getElementById('status');
     btn.disabled = true;
-    btn.innerHTML = '<div class="loading-spinner"></div> 辨識中...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
 
     const img = new Image();
     img.src = document.getElementById('preview').src;
@@ -97,20 +143,17 @@ document.getElementById('submit-btn').onclick = async function() {
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const scale = 3.5; // 再稍微放大一點點
-    const cropWidth = img.width * 0.55; // 稍微多切一點右側空間
-    canvas.width = cropWidth * scale;
-    canvas.height = img.height * scale;
+    const scale = 3.5;
+    const cropWidth = img.width * 0.55;
+    canvas.width = cropWidth * scale; canvas.height = img.height * scale;
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(img, img.width * 0.45, 0, cropWidth, img.height, 0, 0, canvas.width, canvas.height);
 
-    // 強力黑白處理（優化綠色對話框）
     let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
         let avg = (d[i] + d[i+1] + d[i+2]) / 3;
-        // 降低門檻值，讓淺色背景更容易變白，黑字更黑
-        let v = avg < 140 ? 0 : 255; 
+        let v = avg < 145 ? 0 : 255;
         d[i] = d[i+1] = d[i+2] = v;
     }
     ctx.putImageData(imgData, 0, 0);
@@ -127,20 +170,16 @@ document.getElementById('submit-btn').onclick = async function() {
         const result = await response.text();
         alert(result);
         
-        // --- 重置介面，允許連續操作 ---
+        // 重置
         document.getElementById('preview').style.display = 'none';
-        document.getElementById('preview').src = "";
         btn.style.display = 'none';
         btn.disabled = false;
-        btn.innerHTML = '確認送出打卡';
-        document.getElementById('file-input').value = ""; // 清空檔案選擇器
-        document.getElementById('status').innerText = "請選取下一張截圖";
-        
-        fetchUserData(); // 更新總點數
+        btn.innerHTML = '🚀 確認送出打卡';
+        fetchData(); // 重新整理資料與進度條
     } catch (err) {
-        alert("錯誤：" + err);
+        alert("連線錯誤，請重試");
         btn.disabled = false;
-        btn.innerHTML = '確認送出打卡';
+        btn.innerHTML = '🚀 確認送出打卡';
     }
 };
 
