@@ -2,34 +2,33 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>葵粉動起來</title>
+    
+    <!-- 預覽資訊 -->
     <meta property="og:title" content="葵粉動起來">
     <meta property="og:description" content="VIP集點換好禮">
     <meta property="og:image" content="https://i.postimg.cc/jSMWWBvz/001-fang-an-tu-de-fu-ben-vivipic.jpg">
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <!-- 極簡內聯樣式：確保秒開 -->
     <style>
-        :root { --line-green: #06C755; --kewi-pink: #FF85A2; --bg-gray: #F4F6F9; }
-        body { font-family: 'PingFang TC', sans-serif; background-color: var(--bg-gray); margin: 0; }
+        :root { --line-green: #06C755; --kewi-pink: #FF85A2; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #F4F6F9; font-family: sans-serif; overflow-x: hidden; }
         
-        /* 可愛載入畫面 */
+        /* 載入畫面：絕對優先顯示 */
         #loading-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; display: flex; flex-direction: column;
+            background: #ffffff; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 9999;
-            transition: opacity 0.5s ease;
         }
-        .loader-heart { color: var(--kewi-pink); font-size: 50px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .loader-text { margin-top: 20px; font-weight: bold; color: #555; font-size: 16px; }
-        .loader-bar-bg { width: 200px; height: 10px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .loader-bar-fill { width: 0%; height: 100%; background: var(--kewi-pink); transition: width 0.3s; }
+        .heart { color: var(--kewi-pink); font-size: 60px; animation: pulse 1.2s infinite; margin-bottom: 20px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .loading-text { font-size: 16px; color: #555; font-weight: bold; margin-bottom: 10px; }
+        .bar-bg { width: 70%; max-width: 250px; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; }
+        .bar-fill { width: 5%; height: 100%; background: var(--kewi-pink); transition: width 0.3s ease; }
 
-        /* 主介面樣式 */
+        /* 主內容暫時隱藏 */
+        #main-content { display: none; }
         .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 30px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
         .avatar { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
         .points-val { font-size: 48px; font-weight: 800; margin: 5px 0; }
@@ -38,14 +37,10 @@
         .status-box { font-size: 13px; color: #666; margin-bottom: 12px; padding: 10px; background: #e8f5e9; border-radius: 10px; text-align: center; font-weight: bold; }
         .btn-main { background: #333; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
         .btn-submit { background: var(--line-green); margin-top: 10px; display: none; }
-        #preview { width: 100%; border-radius: 12px; margin-top: 15px; display: none; border: 1px solid #eee; }
-
+        #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; }
         .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; text-align: center; }
-        .reward-name { font-size: 13px; height: 32px; overflow: hidden; font-weight: bold; margin-bottom: 5px; line-height: 1.1; display: flex; align-items: center; justify-content: center; }
-        .reward-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
-        
-        /* 點數數字補完與強化 */
+        .reward-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: #f9f9f9; }
         .progress-info { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; font-weight: 900; color: #333; }
         .progress-bg { background: #eee; height: 8px; border-radius: 4px; overflow: hidden; }
         .progress-fill { background: var(--line-green); height: 100%; width: 0%; transition: width 0.5s; }
@@ -53,183 +48,158 @@
 </head>
 <body>
 
-<!-- 載入動畫層 -->
+<!-- 秒開載入畫面 (純 HTML) -->
 <div id="loading-screen">
-    <i class="fas fa-heart loader-heart"></i>
-    <div class="loader-text" id="loader-status">正在召喚葵粉...</div>
-    <div class="loader-bar-bg"><div id="loader-fill" class="loader-bar-fill"></div></div>
+    <div class="heart">❤️</div>
+    <div class="loading-text" id="ld-text">正在召喚卡寶...</div>
+    <div class="bar-bg"><div id="ld-bar" class="bar-fill"></div></div>
 </div>
 
-<div class="header">
-    <img id="user-avatar" class="avatar" src="https://via.placeholder.com/80?text=VIP">
-    <div id="user-name">載入中...</div>
-    <div class="points-val" id="points-display">--</div>
-</div>
-
-<div class="container">
-    <div class="card">
-        <div id="status" class="status-box">AI 引擎準備中...</div>
-        <input type="file" id="file-input" accept="image/*" style="display:none">
-        <button id="upload-btn" class="btn-main" onclick="document.getElementById('file-input').click()" disabled>載入中</button>
-        <img id="preview">
-        <button id="submit-btn" class="btn-main btn-submit">確認送出打卡</button>
+<div id="main-content">
+    <div class="header">
+        <img id="user-avatar" class="avatar" src="">
+        <div id="user-name">載入中...</div>
+        <div class="points-val" id="points-display">--</div>
     </div>
 
-    <div class="card">
-        <div style="font-weight:bold; margin-bottom:12px;"><i class="fas fa-gift" style="color:#ff4757"></i> VIP集點換好禮</div>
-        <div id="rewards-grid" class="rewards-grid">載入中...</div>
+    <div class="container">
+        <div class="card">
+            <div id="status" class="status-box">準備中...</div>
+            <input type="file" id="file-input" accept="image/*" style="display:none">
+            <button id="upload-btn" class="btn-main" onclick="document.getElementById('file-input').click()">選取照片</button>
+            <img id="preview">
+            <button id="submit-btn" class="btn-main btn-submit">確認送出</button>
+        </div>
+        <div class="card">
+            <div style="font-weight:bold; margin-bottom:12px;">VIP集點換好禮</div>
+            <div id="rewards-grid" class="rewards-grid">載入中...</div>
+        </div>
     </div>
 </div>
 
+<!-- 延後載入所有腳本 -->
 <script>
-// --- [填入資訊] ---
-const LIFF_ID = "2008852092-FWAMmdWd"; 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec"; 
+    const LIFF_ID = "2008852092-FWAMmdWd";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
+    let worker = null, userId = "", userName = "", currentPoints = 0;
 
-let userId = "", userName = "", worker = null, currentPoints = 0;
+    function updateLd(p, txt) {
+        document.getElementById("ld-bar").style.width = p + "%";
+        if(txt) document.getElementById("ld-text").innerText = txt;
+    }
 
-// 頁面開啟立刻啟動
-window.onload = function() {
-    updateLoader(10, "正在連接 LINE...");
-    initSystem();
-};
+    // 核心優化：動態加載腳本函式
+    function loadScript(src) {
+        return new Promise((resolve) => {
+            const s = document.createElement('script');
+            s.src = src; s.onload = resolve;
+            document.body.appendChild(s);
+        });
+    }
 
-function updateLoader(percent, text) {
-    document.getElementById("loader-fill").style.width = percent + "%";
-    if(text) document.getElementById("loader-status").innerText = text;
-}
-
-async function initSystem() {
-    try {
-        // 1. LIFF 初始化
+    // 流程啟動
+    window.addEventListener('DOMContentLoaded', async () => {
+        updateLd(15, "正在連線 LINE...");
+        
+        // 1. 同步加載 SDK，但不阻塞畫面
+        await loadScript("https://static.line-scdn.net/liff/edge/2/sdk.js");
         await liff.init({ liffId: LIFF_ID });
-        updateLoader(30, "正在讀取個人資料...");
         
         if (!liff.isLoggedIn()) { liff.login(); return; }
         const profile = await liff.getProfile();
         userId = profile.userId; userName = profile.displayName;
         document.getElementById("user-name").innerText = userName;
         document.getElementById("user-avatar").src = profile.pictureUrl || "";
+
+        updateLd(40, "下載中...");
         
-        // 2. 下載 AI 語言包 (最耗時的地方)
-        updateLoader(50, "正在下載 AI 語言包 (約10MB)...");
+        // 2. 加載 Tesseract
+        await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js");
+        
+        // 3. 準備 OCR Worker
         worker = await Tesseract.createWorker({
             logger: m => {
-                if(m.status === 'loading chi_tra') {
-                    let p = 50 + (m.progress * 40); // 50% ~ 90%
-                    updateLoader(p, `下載 AI 模型: ${Math.round(m.progress * 100)}%`);
-                }
-                if(m.status === 'recognizing') {
-                    document.getElementById("status").innerText = `辨識中: ${Math.round(m.progress * 100)}%`;
-                }
+                if(m.status === 'loading chi_tra') updateLd(40 + (m.progress * 45), `讀取引擎: ${Math.round(m.progress*100)}%`);
+                if(m.status === 'recognizing') document.getElementById("status").innerText = `辨識中: ${Math.round(m.progress*100)}%`;
             }
         });
         await worker.loadLanguage('chi_tra');
         await worker.initialize('chi_tra');
         await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
 
-        // 3. 抓點數
-        updateLoader(95, "正在同步雲端點數...");
+        updateLd(90, "同步點數資料...");
         await fetchData();
 
-        // 完成，隱藏載入畫面
-        updateLoader(100, "準備就緒！");
+        // 4. 全部完成
+        updateLd(100, "準備就緒！");
         setTimeout(() => {
-            document.getElementById("loading-screen").style.opacity = "0";
-            setTimeout(() => { document.getElementById("loading-screen").style.display = "none"; }, 500);
-        }, 500);
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("main-content").style.display = "block";
+        }, 300);
+    });
 
-        document.getElementById("upload-btn").disabled = false;
-        document.getElementById("upload-btn").innerText = "選取截圖照片";
-        document.getElementById("status").innerText = "準備就緒，請上傳截圖";
-        
-    } catch (e) {
-        document.getElementById("loader-status").innerText = "連線失敗，請檢查網路";
-        alert("系統啟動失敗，請重新整理");
+    async function fetchData() {
+        try {
+            const res = await fetch(`${GAS_URL}?userId=${userId}`);
+            const data = await res.json();
+            currentPoints = data.points;
+            document.getElementById("points-display").innerText = currentPoints;
+            const grid = document.getElementById("rewards-grid");
+            grid.innerHTML = "";
+            data.rewards.forEach(r => {
+                let p = Math.min((currentPoints / r.required) * 100, 100);
+                grid.innerHTML += `
+                    <div class="reward-card">
+                        <div class="reward-name">${r.name}</div>
+                        <img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img">
+                        <div class="progress-info"><span>${currentPoints}點</span><span>目標${r.required}</span></div>
+                        <div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div>
+                    </div>`;
+            });
+        } catch (e) { console.log("Fetch Fail"); }
     }
-}
 
-async function fetchData() {
-    try {
-        const res = await fetch(`${GAS_URL}?userId=${userId}`);
-        const data = await res.json();
-        currentPoints = data.points;
-        document.getElementById("points-display").innerText = currentPoints;
-        const grid = document.getElementById("rewards-grid");
-        grid.innerHTML = "";
-        data.rewards.forEach(r => {
-            let p = Math.min((currentPoints / r.required) * 100, 100);
-            grid.innerHTML += `
-                <div class="reward-card">
-                    <div class="reward-name">${r.name}</div>
-                    <img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img">
-                    <div class="progress-info">
-                        <span>${currentPoints}點</span>
-                        <span>需要${r.required}點</span>
-                    </div>
-                    <div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div>
-                </div>`;
-        });
-    } catch (e) { console.log("Fetch error"); }
-}
-
-document.getElementById('file-input').onchange = function(e) {
-    if (!e.target.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        document.getElementById('preview').src = ev.target.result;
-        document.getElementById('preview').style.display = 'block';
-        document.getElementById('submit-btn').style.display = 'block';
+    document.getElementById('file-input').onchange = (e) => {
+        if (!e.target.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            document.getElementById('preview').src = ev.target.result;
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('submit-btn').style.display = 'block';
+        };
+        reader.readAsDataURL(e.target.files[0]);
     };
-    reader.readAsDataURL(e.target.files[0]);
-};
 
-document.getElementById('submit-btn').onclick = async function() {
-    const btn = this;
-    const status = document.getElementById('status');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
-
-    const img = new Image();
-    img.src = document.getElementById('preview').src;
-    await img.decode();
-
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    let w = img.width, h = img.height;
-    if (w > 1200) { h = h * (1200/w); w = 1200; }
-    const scale = 3.2; 
-    const cw = w * 0.55; 
-    canvas.width = cw * scale; canvas.height = h * scale;
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, img.width * 0.45, 0, img.width * 0.55, img.height, 0, 0, canvas.width, canvas.height);
-
-    let id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < id.data.length; i += 4) {
-        let v = (id.data[i] + id.data[i+1] + id.data[i+2]) / 3 < 155 ? 0 : 255;
-        id.data[i] = id.data[i+1] = id.data[i+2] = v;
-    }
-    ctx.putImageData(id, 0, 0);
-
-    try {
-        const { data: { text } } = await worker.recognize(canvas.toDataURL());
-        status.innerText = "同步點數中...";
-        const response = await fetch(GAS_URL, {
-            method: "POST",
-            body: JSON.stringify({ userId, userName, rawText: text.replace(/\s+/g, ""), date: new Date().toLocaleDateString('en-CA') })
-        });
-        alert(await response.text());
-        
-        document.getElementById('preview').style.display = 'none';
-        btn.style.display = 'none';
-        btn.disabled = false;
-        fetchData();
-        status.innerText = "打卡成功！可繼續打卡下一張";
-    } catch (err) {
-        alert("逾時，請再試一次");
-        btn.disabled = false;
-    }
-};
+    document.getElementById('submit-btn').onclick = async function() {
+        this.disabled = true; this.innerText = "辨識中...";
+        const img = new Image(); img.src = document.getElementById('preview').src;
+        await img.decode();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let w = img.width; if (w > 1100) w = 1100;
+        let h = img.height * (w / img.width);
+        const scale = 3.2, cw = w * 0.55;
+        canvas.width = cw * scale; canvas.height = h * scale;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, img.width * 0.45, 0, img.width * 0.55, img.height, 0, 0, canvas.width, canvas.height);
+        let id = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < id.data.length; i += 4) {
+            let v = (id.data[i] + id.data[i+1] + id.data[i+2]) / 3 < 155 ? 0 : 255;
+            id.data[i] = id.data[i+1] = id.data[i+2] = v;
+        }
+        ctx.putImageData(id, 0, 0);
+        try {
+            const { data: { text } } = await worker.recognize(canvas.toDataURL());
+            const response = await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ userId, userName, rawText: text.replace(/\s+/g, ""), date: new Date().toLocaleDateString('en-CA') })
+            });
+            alert(await response.text());
+            document.getElementById('preview').style.display = 'none';
+            this.style.display = 'none'; this.disabled = false; this.innerText = "確認送出";
+            fetchData();
+        } catch (err) { alert("逾時"); this.disabled = false; }
+    };
 </script>
 </body>
 </html>
