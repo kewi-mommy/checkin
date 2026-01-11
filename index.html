@@ -5,47 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>葵粉動起來</title>
     
-    <!-- 預覽設定：已更新圖片網址 -->
+    <!-- 預覽設定：已更新 -->
     <meta property="og:title" content="葵粉動起來">
     <meta property="og:description" content="VIP集點換好禮">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://i.postimg.cc/WbcnW6XV/002-kui-fen-dong-qi-lai-vivipic-(3).jpg">
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         :root { --line-green: #06C755; --kewi-pink: #FF85A2; --bg-gray: #F4F6F9; }
-        body, html { margin: 0; padding: 0; background: var(--bg-gray); font-family: -apple-system, sans-serif; height: 100%; width: 100%; overflow: hidden; }
+        body, html { margin: 0; padding: 0; background: var(--bg-gray); font-family: -apple-system, sans-serif; }
         
-        /* 載入畫面 */
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 9999;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .svg-heart { width: 70px; height: 70px; fill: var(--kewi-pink); animation: pulse 1.2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .loader-text { margin-top: 25px; font-size: 16px; color: #555; font-weight: bold; }
         .progress-container { width: 200px; height: 8px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; }
         .progress-bar { width: 0%; height: 100%; background: var(--kewi-pink); transition: width 0.4s ease; }
 
         #main-app { display: none; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 35px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
-        .avatar { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; margin-bottom: 8px; background: #eee; }
+        .avatar { width: 75px; height: 75px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; margin-bottom: 8px; background: #eee; }
         .points-val { font-size: 48px; font-weight: 800; margin: 5px 0; }
         
-        .container { max-width: 450px; margin: -30px auto 40px; padding: 0 15px; }
+        .container { max-width: 450px; margin: -25px auto 40px; padding: 0 15px; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; text-align: center; }
+        .status-box { font-size: 13px; color: #666; margin-bottom: 12px; padding: 12px; background: #e8f5e9; border-radius: 12px; font-weight: bold; }
+        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 17px; font-weight: bold; cursor: pointer; }
+        .btn-submit { background: var(--line-green); margin-top: 10px; display: none; box-shadow: 0 4px 15px rgba(6,199,85,0.3); }
         
-        .status-box { font-size: 13px; color: #666; margin-bottom: 12px; padding: 10px; background: #e8f5e9; border-radius: 10px; font-weight: bold; }
-        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-submit { background: var(--line-green); margin-top: 10px; display: none; }
-        
-        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; }
         .reward-name { font-size: 11px; height: 32px; overflow: hidden; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
-        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; margin-bottom: 8px; background: #f9f9f9; }
-        
+        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; background: #f9f9f9; margin-bottom: 8px; }
         .progress-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; font-weight: bold; color: #333; }
         .progress-bg { background: #eee; height: 7px; border-radius: 4px; overflow: hidden; }
         .progress-fill { background: var(--line-green); height: 100%; width: 0%; transition: width 0.6s; }
@@ -61,23 +56,16 @@
 </div>
 
 <div id="main-app">
-    <div class="header">
-        <img id="user-avatar" class="avatar" src="">
-        <div id="user-name">載入中...</div>
-        <div class="points-val" id="points-display">--</div>
-    </div>
+    <div class="header"><img id="user-avatar" class="avatar" src=""><div id="user-name">載入中...</div><div class="points-val" id="points-display">--</div></div>
     <div class="container">
         <div class="card">
-            <div id="status" class="status-box">請選取截圖照片打卡</div>
+            <div id="status" class="status-box">請上傳您的對話截圖</div>
             <input type="file" id="file-input" accept="image/*" style="display:none">
-            <button id="upload-btn" class="btn-main" onclick="handleSelect()">📸 選取照片</button>
+            <button id="upload-btn" class="btn-main" onclick="document.getElementById('file-input').click()">📸 選取照片</button>
             <img id="preview">
             <button id="submit-btn" class="btn-main btn-submit" onclick="handleSubmit()">🚀 確認送出打卡</button>
         </div>
-        <div class="card" style="text-align:left;">
-            <div style="font-weight:bold; margin-bottom:12px;">🎁 VIP集點換好禮</div>
-            <div id="rewards-grid" class="rewards-grid">載入獎品中...</div>
-        </div>
+        <div class="card" style="text-align:left;"><div style="font-weight:bold; margin-bottom:12px;">🎁 VIP集點換好禮</div><div id="rewards-grid" class="rewards-grid">載入獎品中...</div></div>
     </div>
 </div>
 
@@ -85,52 +73,28 @@
     const LIFF_ID = "2008852092-FWAMmdWd";
     const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
     
-    let userId = "", userName = "", worker = null, currentPoints = 0;
-
-    function setLd(p, txt) {
-        document.getElementById("ld-bar").style.width = p + "%";
-        if(txt) document.getElementById("ld-status").innerText = txt;
-    }
-
-    function loadScript(src) {
-        return new Promise((resolve) => {
-            const s = document.createElement('script');
-            s.src = src; s.onload = resolve;
-            document.body.appendChild(s);
-        });
-    }
-
+    let userId="", userName="", worker=null, currentPoints=0;
+    function setLd(p, txt) { document.getElementById("ld-bar").style.width = p + "%"; if(txt) document.getElementById("ld-status").innerText = txt; }
+    
     window.onload = async function() {
-        setLd(15, "連線 LINE...");
+        setLd(10, "連線 LINE...");
         try {
             await liff.init({ liffId: LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
-            const p = await liff.getProfile();
-            userId = p.userId; userName = p.displayName;
+            const profile = await liff.getProfile();
+            userId = profile.userId; userName = profile.displayName;
             document.getElementById("user-name").innerText = userName;
-            document.getElementById("user-avatar").src = p.pictureUrl || "";
-
-            setLd(40, "下載 AI 辨識引擎...");
-            await loadScript("https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js");
-            
-            worker = await Tesseract.createWorker({
-                logger: m => { if(m.status === 'loading chi_tra') setLd(40 + (m.progress * 50), `下載資源: ${Math.round(m.progress*100)}%`); }
+            document.getElementById("user-avatar").src = profile.pictureUrl || "";
+            fetchData();
+            setLd(50, "啟動 AI 引擎...");
+            worker = await Tesseract.createWorker({ 
+                logger: m => { if(m.status === 'loading chi_tra') setLd(50 + (m.progress * 45), `下載資源: ${Math.round(m.progress*100)}%`); } 
             });
             await worker.loadLanguage('chi_tra');
             await worker.initialize('chi_tra');
-            await worker.setParameters({ tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK });
-
-            setLd(95, "正在同步點數...");
-            await fetchData();
-
             setLd(100, "準備就緒！");
-            setTimeout(() => {
-                document.getElementById("loading-screen").style.display = "none";
-                document.getElementById("main-app").style.display = "block";
-                document.body.style.overflow = "auto";
-            }, 400);
-
-        } catch (e) { document.getElementById("ld-status").innerText = "連線失敗"; }
+            setTimeout(() => { document.getElementById("loading-screen").style.display = "none"; document.getElementById("main-app").style.display = "block"; }, 400);
+        } catch (err) { document.getElementById("loading-screen").style.display = "none"; document.getElementById("main-app").style.display = "block"; }
     };
 
     async function fetchData() {
@@ -148,8 +112,6 @@
         } catch (e) { }
     }
 
-    async function handleSelect() { document.getElementById('file-input').click(); }
-
     document.getElementById('file-input').onchange = (e) => {
         if (!e.target.files[0]) return;
         const reader = new FileReader();
@@ -157,29 +119,47 @@
             document.getElementById('preview').src = ev.target.result;
             document.getElementById('preview').style.display = 'block';
             document.getElementById('submit-btn').style.display = 'block';
-            document.getElementById("status").innerText = "圖片已就緒，請點擊確認送出";
         };
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    // --- 【進階優化】專門對付標楷體與細筆畫 ---
-    function processImg(img, scale) {
+    // --- 【進階優化】不限高度 + 色彩過濾增強 ---
+    function processImage(img, scale, filterMode) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const cropWidth = img.width * 0.7; const startX = img.width * 0.3;
-        canvas.width = cropWidth * scale; canvas.height = img.height * scale;
         
-        ctx.imageSmoothingEnabled = true; // 標楷體需要稍微平滑來連接斷掉的筆畫
+        // 保留 100% 高度，只切除左側 25% 頭像區
+        const startX = img.width * 0.25;
+        const cropWidth = img.width * 0.75;
+        canvas.width = cropWidth * scale;
+        canvas.height = img.height * scale;
+        
+        ctx.imageSmoothingEnabled = false;
         ctx.drawImage(img, startX, 0, cropWidth, img.height, 0, 0, canvas.width, canvas.height);
         
         let id = ctx.getImageData(0, 0, canvas.width, canvas.height);
         let data = id.data;
-        
-        // 自適應門檻：針對細字體稍微降低門檻，保留更多「灰邊」讓字看起來變粗
-        for (let i=0; i<data.length; i+=4) {
-            let gray = (0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]);
-            // 把門檻鎖定在 155 左右，這會讓標楷體的筆畫「膨脹」一點點
-            let v = gray < 155 ? 0 : 255;
+
+        for (let i = 0; i < data.length; i += 4) {
+            let r = data[i], g = data[i+1], b = data[i+2];
+            let v;
+            
+            // 心理學亮度公式
+            let brightness = 0.299*r + 0.587*g + 0.114*b;
+
+            if (filterMode === "aggressive") {
+                // 強力過濾模式：任何有色彩的（泡泡色）或淺色的（背景色）通通轉白
+                // 判斷是否為「非中性色」（即彩色）
+                let isColor = Math.max(r,g,b) - Math.min(r,g,b) > 20;
+                if (isColor || brightness > 140) {
+                    v = 255;
+                } else {
+                    v = 0; // 只有深黑色的字會留下
+                }
+            } else {
+                // 標準對比模式
+                v = brightness < 155 ? 0 : 255;
+            }
             data[i] = data[i+1] = data[i+2] = v;
         }
         ctx.putImageData(id, 0, 0);
@@ -188,23 +168,32 @@
 
     async function handleSubmit() {
         const btn = document.getElementById("submit-btn");
-        btn.disabled = true; btn.innerHTML = "辨識中...";
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
+        document.getElementById("status").innerText = "🔍 正在全屏深度校對文字...";
+        
         const img = new Image(); img.src = document.getElementById('preview').src;
         await img.decode();
+        
         try {
-            // 執行三種維度的掃描
-            const d1 = processImg(img, 1.2); // 長輩大字體
+            // 雙重掃描：1.5x (大字體) + 3.2x (強力過濾背景)
+            const d1 = processImage(img, 1.5, "standard");
             const r1 = await worker.recognize(d1);
-            const d2 = processImg(img, 3.2); // 一般字體
+            
+            const d2 = processImage(img, 3.2, "aggressive");
             const r2 = await worker.recognize(d2);
 
             const combined = (r1.data.text + " " + r2.data.text).replace(/\s+/g, "");
-            const res = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ userId, userName, rawText: combined, date: new Date().toLocaleDateString('en-CA') }) });
+
+            const res = await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify({ userId, userName, rawText: combined, date: new Date().toLocaleDateString('en-CA') })
+            });
+
             alert(await res.text());
             document.getElementById('preview').style.display = 'none';
             btn.style.display = 'none'; btn.disabled = false; btn.innerHTML = "🚀 確認送出打卡";
             fetchData();
-        } catch (e) { alert("辨識超時"); btn.disabled = false; }
+        } catch (err) { alert("辨識超時，請確保截圖清晰"); btn.disabled = false; }
     }
 </script>
 </body>
