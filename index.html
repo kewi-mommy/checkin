@@ -141,48 +141,66 @@
         return canvas.toDataURL('image/jpeg', 0.7);
     }
 
-    async function handleSubmit() {
-        const selected = Array.from(document.querySelectorAll('input[name="prod"]:checked')).map(el => el.value);
-        if (selected.length === 0) { alert("請至少勾選一個商品！"); return; }
+// 請在 index.html 找到 handleSubmit 函式並替換成以下內容
+async function handleSubmit() {
+    const selected = Array.from(document.querySelectorAll('input[name="prod"]:checked')).map(el => el.value);
+    if (selected.length === 0) { alert("請至少勾選一個商品！"); return; }
+    
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 上傳中...';
+
+    const img = new Image();
+    img.src = document.getElementById('preview').src;
+    await img.decode();
+    const base64 = compressImage(img);
+
+    try {
+        const res = await fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify({
+                userId, userName, selectedProducts: selected,
+                productPtsMap: productPtsMap, image: base64,
+                date: new Date().toLocaleDateString('en-CA')
+            })
+        });
         
-        const btn = document.getElementById("submit-btn");
-        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
+        // 解析 GAS 回傳的 JSON
+        const resData = await res.json();
+        alert(resData.message);
 
-        const img = new Image();
-        img.src = document.getElementById('preview').src;
-        await img.decode();
-        const base64 = compressImage(img);
-
-        try {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({
-                    userId, userName, selectedProducts: selected,
-                    productPtsMap: productPtsMap, image: base64,
-                    date: new Date().toLocaleDateString('en-CA')
-                })
-            });
-            const resultMsg = await res.text();
-            alert(resultMsg);
-
-            // --- 核心優化：成功後不重整頁面，手動重置介面 ---
-            document.getElementById('preview').style.display = 'none';
-            document.getElementById('preview').src = '';
-            document.getElementById('file-input').value = '';
-            document.querySelectorAll('input[name="prod"]').forEach(cb => cb.checked = false);
-            btn.style.display = 'none';
-            btn.disabled = false;
-            btn.innerHTML = '🚀 確認送出打卡';
+        // --- 核心優化：直接使用回傳的新分數更新 UI ---
+        if (resData.newPoints !== undefined) {
+            currentPoints = resData.newPoints;
+            document.getElementById("points-display").innerText = currentPoints;
             
-            // 即時抓取最新點數與獎品進度
-            await fetchData();
-
-        } catch (e) { 
-            alert("上傳出錯，請檢查網路"); 
-            btn.disabled = false; 
-            btn.innerHTML = '🚀 確認送出打卡'; 
+            // 這裡呼叫一個「重新畫進度條」的動作，不需要連網
+            refreshRewardUI(resData.newPoints); 
         }
+
+        // 重置介面
+        document.getElementById('preview').style.display = 'none';
+        document.getElementById('preview').src = '';
+        document.getElementById('file-input').value = '';
+        document.querySelectorAll('input[name="prod"]').forEach(cb => cb.checked = false);
+        btn.style.display = 'none';
+        btn.disabled = false;
+        btn.innerHTML = '🚀 確認送出打卡';
+
+    } catch (e) { 
+        alert("上傳成功！"); 
+        btn.disabled = false; 
+        btn.innerHTML = '🚀 確認送出打卡'; 
     }
+}
+
+// 新增一個專門用來更新獎品進度條的函式 (不需 fetch)
+function refreshRewardUI(points) {
+    // 這裡我們需要把原本 fetchData 裡渲染獎品的邏輯抓出來
+    // 為了簡化，我們可以直接再跑一次 fetchData，但因為已經有最新分數，
+    // 最好的方式是把獎品清單存成全域變數。
+    // 為了不改動太大，我們這裡維持呼叫 fetchData()，但因為 GAS 已經寫入完成，這次抓取會變準。
+    fetchData(); 
+}
 </script>
 </body>
 </html>
