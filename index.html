@@ -10,57 +10,69 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --line-green: #06C755; --kewi-pink: #FF85A2; --bg-gray: #F4F6F9; }
-        body, html { margin: 0; padding: 0; background: var(--bg-gray); font-family: -apple-system, sans-serif; }
+        body { font-family: sans-serif; background: var(--bg-gray); margin: 0; padding: 0; }
         #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .svg-heart { width: 70px; height: 70px; fill: var(--kewi-pink); animation: pulse 1.2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 30px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
-        .avatar { width: 75px; height: 75px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; margin-bottom: 8px; }
+        .avatar { width: 70px; height: 70px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
         .points-val { font-size: 50px; font-weight: 800; margin: 5px 0; }
         .container { max-width: 450px; margin: -30px auto 40px; padding: 0 15px; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
         
-        /* 複選清單樣式 */
-        .product-list { text-align: left; margin: 15px 0; }
-        .product-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
-        .product-item input { width: 20px; height: 20px; margin-right: 12px; accent-color: var(--line-green); }
+        /* 兩欄式商品選單 */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 8px; 
+            max-height: 220px; 
+            overflow-y: auto; 
+            padding: 10px; 
+            border: 1px solid #eee; 
+            border-radius: 12px;
+            background: #fafafa;
+        }
+        .product-item { 
+            display: flex; align-items: center; background: white; 
+            padding: 10px; border-radius: 8px; border: 1px solid #eee; font-size: 13px;
+        }
+        .product-item input { margin-right: 8px; width: 18px; height: 18px; accent-color: var(--line-green); }
         
         .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-submit { background: var(--line-green); margin-top: 15px; display: none; }
+        .btn-submit { background: var(--line-green); margin-top: 15px; }
         #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; }
 
-        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; text-align: center; }
         .reward-name { font-size: 11px; height: 32px; overflow: hidden; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; }
-        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; margin-bottom: 8px; background: #f9f9f9; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; color: #333; }
+        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; background: #f9f9f9; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; color: #333; margin: 4px 0; }
         .progress-bg { background: #eee; height: 7px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { background: var(--line-green); height: 100%; width: 0%; }
+        .progress-fill { background: var(--line-green); height: 100%; width: 0%; transition: width 0.6s; }
     </style>
 </head>
 <body>
 
 <div id="loading-screen">
     <svg class="svg-heart" viewBox="0 0 32 32"><path d="M16 28.5L14.1 26.8C7.33 20.62 3 16.66 3 11.85C3 7.84 6.09 4.75 10 4.75C12.21 4.75 14.33 5.79 15.7 7.44C15.81 7.57 15.91 7.71 16 7.85C16.09 7.71 16.19 7.57 16.3 7.44C17.67 5.79 19.79 4.75 22 4.75C25.91 4.75 29 7.84 29 11.85C29 16.66 24.67 20.62 17.9 26.82L16 28.5Z"/></svg>
-    <div style="margin-top:20px; font-weight:bold; color:#555;">正在連線...</div>
 </div>
 
 <div id="main-app" style="display:none;">
     <div class="header">
         <img id="user-avatar" class="avatar" src="">
-        <div id="user-name" style="font-size:18px;">葵粉</div>
+        <div id="user-name" style="margin-top:5px; font-size:18px;">葵粉</div>
         <div class="points-val" id="points-display">--</div>
     </div>
     <div class="container">
         <div class="card">
-            <div style="font-weight:bold; border-bottom:1px solid #eee; padding-bottom:8px;">1. 勾選今日打卡商品</div>
-            <div id="product-list" class="product-list">載入中...</div>
+            <div style="font-weight:bold; margin-bottom:10px; font-size:15px; text-align:left;"><i class="fas fa-check-square"></i> 1. 勾選今日打卡商品</div>
+            <div id="product-grid" class="product-grid">載入中...</div>
             
-            <div style="font-weight:bold; border-bottom:1px solid #eee; padding-bottom:8px; margin-top:20px;">2. 上傳打卡截圖</div>
+            <div style="font-weight:bold; margin-bottom:10px; margin-top:20px; font-size:15px; text-align:left;"><i class="fas fa-image"></i> 2. 上傳截圖證據</div>
             <input type="file" id="file-input" accept="image/*" style="display:none">
-            <button id="upload-btn" class="btn-main" style="margin-top:10px;" onclick="document.getElementById('file-input').click()">📸 選取照片</button>
+            <button id="upload-btn" class="btn-main" onclick="document.getElementById('file-input').click()">📸 選取照片</button>
             <img id="preview">
-            <button id="submit-btn" class="btn-submit btn-main">🚀 確認送出打卡</button>
+            <button id="submit-btn" class="btn-main btn-submit" style="display:none;" onclick="handleSubmit()">🚀 確認送出打卡</button>
         </div>
         <div class="card" style="text-align:left;">
             <div style="font-weight:bold; margin-bottom:12px;">🎁 VIP集點換好禮</div>
@@ -72,19 +84,20 @@
 <script>
     const LIFF_ID = "2008852092-FWAMmdWd";
     const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
-    
     let userId = "", userName = "", productPtsMap = {};
 
     window.onload = async function() {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
-        const p = await liff.getProfile();
-        userId = p.userId; userName = p.displayName;
-        document.getElementById("user-name").innerText = userName;
-        document.getElementById("user-avatar").src = p.pictureUrl;
-        await fetchData();
-        document.getElementById("loading-screen").style.display = "none";
-        document.getElementById("main-app").style.display = "block";
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const p = await liff.getProfile();
+            userId = p.userId; userName = p.displayName;
+            document.getElementById("user-name").innerText = userName;
+            document.getElementById("user-avatar").src = p.pictureUrl || "";
+            await fetchData();
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("main-app").style.display = "block";
+        } catch (e) { alert("連線失敗"); }
     };
 
     async function fetchData() {
@@ -92,18 +105,17 @@
         const data = await res.json();
         document.getElementById("points-display").innerText = data.points;
         
-        // 商品複選清單
-        const list = document.getElementById("product-list");
-        list.innerHTML = data.productList.map(item => {
+        // 渲染兩欄式商品選單
+        const grid = document.getElementById("product-grid");
+        grid.innerHTML = data.productList.map(item => {
             productPtsMap[item.name] = item.pts;
             return `<label class="product-item"><input type="checkbox" name="prod" value="${item.name}">${item.name}</label>`;
         }).join("");
 
-        // 獎品
-        const grid = document.getElementById("rewards-grid");
-        grid.innerHTML = data.rewards.map(r => {
+        const rGrid = document.getElementById("rewards-grid");
+        rGrid.innerHTML = data.rewards.map(r => {
             let p = Math.min((data.points / r.required) * 100, 100);
-            return `<div class="reward-card"><div class="reward-name">${r.name}</div><img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img"><div class="progress-info"><span>${data.points}點</span><span>目標${r.required}</span></div><div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div></div>`;
+            return `<div class="reward-card"><div class="reward-name">${r.name}</div><img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img"><div class="progress-info"><span>${data.points}</span><span>目標${r.required}</span></div><div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div></div>`;
         }).join("");
     }
 
@@ -118,16 +130,14 @@
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    // 圖片壓縮函式 (確保上傳速度)
     function compressImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const maxW = 800; // 壓縮至寬度 800px，足以看清文字
+        const maxW = 800;
         const scale = maxW / img.width;
-        canvas.width = maxW;
-        canvas.height = img.height * scale;
+        canvas.width = maxW; canvas.height = img.height * scale;
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        return canvas.toDataURL('image/jpeg', 0.7); // 70% 品質壓縮
+        return canvas.toDataURL('image/jpeg', 0.7);
     }
 
     async function handleSubmit() {
@@ -140,22 +150,20 @@
         const img = new Image();
         img.src = document.getElementById('preview').src;
         await img.decode();
-        const compressedBase64 = compressImage(img);
+        const base64 = compressImage(img);
 
         try {
             const res = await fetch(GAS_URL, {
                 method: "POST",
                 body: JSON.stringify({
-                    userId, userName,
-                    selectedProducts: selected,
-                    productPtsMap: productPtsMap,
-                    image: compressedBase64,
+                    userId, userName, selectedProducts: selected,
+                    productPtsMap: productPtsMap, image: base64,
                     date: new Date().toLocaleDateString('en-CA')
                 })
             });
             alert(await res.text());
             location.reload();
-        } catch (e) { alert("上傳失敗，請再試一次"); btn.disabled = false; }
+        } catch (e) { alert("上傳出錯"); btn.disabled = false; btn.innerText = "確認送出打卡"; }
     }
 </script>
 </body>
