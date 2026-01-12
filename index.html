@@ -4,68 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>葵粉動起來</title>
-    
-    <!-- 預覽設定：已更新 -->
     <meta property="og:title" content="葵粉動起來">
-    <meta property="og:description" content="VIP集點換好禮">
-    <meta property="og:type" content="website">
     <meta property="og:image" content="https://i.postimg.cc/WbcnW6XV/002-kui-fen-dong-qi-lai-vivipic-(3).jpg">
-
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://unpkg.com/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
         :root { --line-green: #06C755; --kewi-pink: #FF85A2; --bg-gray: #F4F6F9; }
         body, html { margin: 0; padding: 0; background: var(--bg-gray); font-family: -apple-system, sans-serif; }
-        
         #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
         .svg-heart { width: 70px; height: 70px; fill: var(--kewi-pink); animation: pulse 1.2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .loader-text { margin-top: 25px; font-size: 16px; color: #555; font-weight: bold; }
-        .progress-container { width: 200px; height: 8px; background: #eee; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .progress-bar { width: 0%; height: 100%; background: var(--kewi-pink); transition: width 0.4s ease; }
-
-        #main-app { display: none; height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 35px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
-        .avatar { width: 75px; height: 75px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; margin-bottom: 8px; background: #eee; }
-        .points-val { font-size: 48px; font-weight: 800; margin: 5px 0; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .header { background: linear-gradient(135deg, var(--line-green), #05a346); padding: 30px 20px; text-align: center; color: white; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
+        .avatar { width: 75px; height: 75px; border-radius: 50%; border: 3px solid #fff; object-fit: cover; margin-bottom: 8px; }
+        .points-val { font-size: 50px; font-weight: 800; margin: 5px 0; }
+        .container { max-width: 450px; margin: -30px auto 40px; padding: 0 15px; }
+        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
         
-        .container { max-width: 450px; margin: -25px auto 40px; padding: 0 15px; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; text-align: center; }
-        .status-box { font-size: 13px; color: #666; margin-bottom: 12px; padding: 12px; background: #e8f5e9; border-radius: 12px; font-weight: bold; }
-        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 17px; font-weight: bold; cursor: pointer; }
-        .btn-submit { background: var(--line-green); margin-top: 10px; display: none; box-shadow: 0 4px 15px rgba(6,199,85,0.3); }
+        /* 複選清單樣式 */
+        .product-list { text-align: left; margin: 15px 0; }
+        .product-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 15px; }
+        .product-item input { width: 20px; height: 20px; margin-right: 12px; accent-color: var(--line-green); }
         
-        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; }
-        .reward-name { font-size: 11px; height: 32px; overflow: hidden; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
-        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; background: #f9f9f9; margin-bottom: 8px; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; font-weight: bold; color: #333; }
-        .progress-bg { background: #eee; height: 7px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { background: var(--line-green); height: 100%; width: 0%; transition: width 0.6s; }
+        .btn-main { background: #333; color: white; border: none; padding: 16px; width: 100%; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-submit { background: var(--line-green); margin-top: 15px; display: none; }
         #preview { width: 100%; border-radius: 15px; margin-top: 15px; display: none; }
+
+        .rewards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .reward-card { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 10px; text-align: center; }
+        .reward-name { font-size: 11px; height: 32px; overflow: hidden; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; }
+        .reward-img { width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; object-fit: cover; margin-bottom: 8px; background: #f9f9f9; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; color: #333; }
+        .progress-bg { background: #eee; height: 7px; border-radius: 4px; overflow: hidden; }
+        .progress-fill { background: var(--line-green); height: 100%; width: 0%; }
     </style>
 </head>
 <body>
 
 <div id="loading-screen">
     <svg class="svg-heart" viewBox="0 0 32 32"><path d="M16 28.5L14.1 26.8C7.33 20.62 3 16.66 3 11.85C3 7.84 6.09 4.75 10 4.75C12.21 4.75 14.33 5.79 15.7 7.44C15.81 7.57 15.91 7.71 16 7.85C16.09 7.71 16.19 7.57 16.3 7.44C17.67 5.79 19.79 4.75 22 4.75C25.91 4.75 29 7.84 29 11.85C29 16.66 24.67 20.62 17.9 26.82L16 28.5Z"/></svg>
-    <div class="loader-text" id="ld-status">正在啟動系統...</div>
-    <div class="progress-container"><div id="ld-bar" class="progress-bar"></div></div>
+    <div style="margin-top:20px; font-weight:bold; color:#555;">正在連線...</div>
 </div>
 
-<div id="main-app">
-    <div class="header"><img id="user-avatar" class="avatar" src=""><div id="user-name">載入中...</div><div class="points-val" id="points-display">--</div></div>
+<div id="main-app" style="display:none;">
+    <div class="header">
+        <img id="user-avatar" class="avatar" src="">
+        <div id="user-name" style="font-size:18px;">葵粉</div>
+        <div class="points-val" id="points-display">--</div>
+    </div>
     <div class="container">
         <div class="card">
-            <div id="status" class="status-box">請上傳您的對話截圖</div>
+            <div style="font-weight:bold; border-bottom:1px solid #eee; padding-bottom:8px;">1. 勾選今日打卡商品</div>
+            <div id="product-list" class="product-list">載入中...</div>
+            
+            <div style="font-weight:bold; border-bottom:1px solid #eee; padding-bottom:8px; margin-top:20px;">2. 上傳打卡截圖</div>
             <input type="file" id="file-input" accept="image/*" style="display:none">
-            <button id="upload-btn" class="btn-main" onclick="document.getElementById('file-input').click()">📸 選取照片</button>
+            <button id="upload-btn" class="btn-main" style="margin-top:10px;" onclick="document.getElementById('file-input').click()">📸 選取照片</button>
             <img id="preview">
-            <button id="submit-btn" class="btn-main btn-submit" onclick="handleSubmit()">🚀 確認送出打卡</button>
+            <button id="submit-btn" class="btn-submit btn-main">🚀 確認送出打卡</button>
         </div>
-        <div class="card" style="text-align:left;"><div style="font-weight:bold; margin-bottom:12px;">🎁 VIP集點換好禮</div><div id="rewards-grid" class="rewards-grid">載入獎品中...</div></div>
+        <div class="card" style="text-align:left;">
+            <div style="font-weight:bold; margin-bottom:12px;">🎁 VIP集點換好禮</div>
+            <div id="rewards-grid" class="rewards-grid">載入中...</div>
+        </div>
     </div>
 </div>
 
@@ -73,43 +73,38 @@
     const LIFF_ID = "2008852092-FWAMmdWd";
     const GAS_URL = "https://script.google.com/macros/s/AKfycbydAUJv9hkMsWFuFNTMoSQ61Md67yE-LyjTh4bg8U97NPgyG2ZvkdY_flflAcBxd4ol/exec";
     
-    let userId="", userName="", worker=null, currentPoints=0;
-    function setLd(p, txt) { document.getElementById("ld-bar").style.width = p + "%"; if(txt) document.getElementById("ld-status").innerText = txt; }
-    
+    let userId = "", userName = "", productPtsMap = {};
+
     window.onload = async function() {
-        setLd(10, "連線 LINE...");
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (!liff.isLoggedIn()) { liff.login(); return; }
-            const profile = await liff.getProfile();
-            userId = profile.userId; userName = profile.displayName;
-            document.getElementById("user-name").innerText = userName;
-            document.getElementById("user-avatar").src = profile.pictureUrl || "";
-            fetchData();
-            setLd(50, "啟動 AI 引擎...");
-            worker = await Tesseract.createWorker({ 
-                logger: m => { if(m.status === 'loading chi_tra') setLd(50 + (m.progress * 45), `下載資源: ${Math.round(m.progress*100)}%`); } 
-            });
-            await worker.loadLanguage('chi_tra');
-            await worker.initialize('chi_tra');
-            setLd(100, "準備就緒！");
-            setTimeout(() => { document.getElementById("loading-screen").style.display = "none"; document.getElementById("main-app").style.display = "block"; }, 400);
-        } catch (err) { document.getElementById("loading-screen").style.display = "none"; document.getElementById("main-app").style.display = "block"; }
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        const p = await liff.getProfile();
+        userId = p.userId; userName = p.displayName;
+        document.getElementById("user-name").innerText = userName;
+        document.getElementById("user-avatar").src = p.pictureUrl;
+        await fetchData();
+        document.getElementById("loading-screen").style.display = "none";
+        document.getElementById("main-app").style.display = "block";
     };
 
     async function fetchData() {
-        try {
-            const res = await fetch(`${GAS_URL}?userId=${userId}`);
-            const data = await res.json();
-            currentPoints = data.points;
-            document.getElementById("points-display").innerText = currentPoints;
-            const grid = document.getElementById("rewards-grid");
-            grid.innerHTML = "";
-            data.rewards.forEach(r => {
-                let p = Math.min((currentPoints / r.required) * 100, 100);
-                grid.innerHTML += `<div class="reward-card"><div class="reward-name">${r.name}</div><div class="reward-img-container"><img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img"></div><div class="progress-info"><span>${currentPoints}點</span><span>目標${r.required}</span></div><div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div></div>`;
-            });
-        } catch (e) { }
+        const res = await fetch(`${GAS_URL}?userId=${userId}`);
+        const data = await res.json();
+        document.getElementById("points-display").innerText = data.points;
+        
+        // 商品複選清單
+        const list = document.getElementById("product-list");
+        list.innerHTML = data.productList.map(item => {
+            productPtsMap[item.name] = item.pts;
+            return `<label class="product-item"><input type="checkbox" name="prod" value="${item.name}">${item.name}</label>`;
+        }).join("");
+
+        // 獎品
+        const grid = document.getElementById("rewards-grid");
+        grid.innerHTML = data.rewards.map(r => {
+            let p = Math.min((data.points / r.required) * 100, 100);
+            return `<div class="reward-card"><div class="reward-name">${r.name}</div><img src="${r.image || 'https://via.placeholder.com/150'}" class="reward-img"><div class="progress-info"><span>${data.points}點</span><span>目標${r.required}</span></div><div class="progress-bg"><div class="progress-fill" style="width:${p}%"></div></div></div>`;
+        }).join("");
     }
 
     document.getElementById('file-input').onchange = (e) => {
@@ -123,77 +118,44 @@
         reader.readAsDataURL(e.target.files[0]);
     };
 
-    // --- 【進階優化】不限高度 + 色彩過濾增強 ---
-    function processImage(img, scale, filterMode) {
+    // 圖片壓縮函式 (確保上傳速度)
+    function compressImage(img) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // 保留 100% 高度，只切除左側 25% 頭像區
-        const startX = img.width * 0.25;
-        const cropWidth = img.width * 0.75;
-        canvas.width = cropWidth * scale;
+        const maxW = 800; // 壓縮至寬度 800px，足以看清文字
+        const scale = maxW / img.width;
+        canvas.width = maxW;
         canvas.height = img.height * scale;
-        
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, startX, 0, cropWidth, img.height, 0, 0, canvas.width, canvas.height);
-        
-        let id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let data = id.data;
-
-        for (let i = 0; i < data.length; i += 4) {
-            let r = data[i], g = data[i+1], b = data[i+2];
-            let v;
-            
-            // 心理學亮度公式
-            let brightness = 0.299*r + 0.587*g + 0.114*b;
-
-            if (filterMode === "aggressive") {
-                // 強力過濾模式：任何有色彩的（泡泡色）或淺色的（背景色）通通轉白
-                // 判斷是否為「非中性色」（即彩色）
-                let isColor = Math.max(r,g,b) - Math.min(r,g,b) > 20;
-                if (isColor || brightness > 140) {
-                    v = 255;
-                } else {
-                    v = 0; // 只有深黑色的字會留下
-                }
-            } else {
-                // 標準對比模式
-                v = brightness < 155 ? 0 : 255;
-            }
-            data[i] = data[i+1] = data[i+2] = v;
-        }
-        ctx.putImageData(id, 0, 0);
-        return canvas.toDataURL();
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', 0.7); // 70% 品質壓縮
     }
 
     async function handleSubmit() {
+        const selected = Array.from(document.querySelectorAll('input[name="prod"]:checked')).map(el => el.value);
+        if (selected.length === 0) { alert("請至少勾選一個商品！"); return; }
+        
         const btn = document.getElementById("submit-btn");
-        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 辨識中...';
-        document.getElementById("status").innerText = "🔍 正在全屏深度校對文字...";
-        
-        const img = new Image(); img.src = document.getElementById('preview').src;
+        btn.disabled = true; btn.innerText = "上傳中...";
+
+        const img = new Image();
+        img.src = document.getElementById('preview').src;
         await img.decode();
-        
+        const compressedBase64 = compressImage(img);
+
         try {
-            // 雙重掃描：1.5x (大字體) + 3.2x (強力過濾背景)
-            const d1 = processImage(img, 1.5, "standard");
-            const r1 = await worker.recognize(d1);
-            
-            const d2 = processImage(img, 3.2, "aggressive");
-            const r2 = await worker.recognize(d2);
-
-            const combined = (r1.data.text + " " + r2.data.text).replace(/\s+/g, "");
-
             const res = await fetch(GAS_URL, {
                 method: "POST",
-                body: JSON.stringify({ userId, userName, rawText: combined, date: new Date().toLocaleDateString('en-CA') })
+                body: JSON.stringify({
+                    userId, userName,
+                    selectedProducts: selected,
+                    productPtsMap: productPtsMap,
+                    image: compressedBase64,
+                    date: new Date().toLocaleDateString('en-CA')
+                })
             });
-
             alert(await res.text());
-            document.getElementById('preview').style.display = 'none';
-            btn.style.display = 'none'; btn.disabled = false; btn.innerHTML = "🚀 確認送出打卡";
-            fetchData();
-        } catch (err) { alert("辨識超時，請確保截圖清晰"); btn.disabled = false; }
+            location.reload();
+        } catch (e) { alert("上傳失敗，請再試一次"); btn.disabled = false; }
     }
 </script>
 </body>
